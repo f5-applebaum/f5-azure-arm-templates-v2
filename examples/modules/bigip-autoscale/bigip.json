@@ -368,7 +368,7 @@
     "offerToUse": "[if(variables('useCustomImage'), json('null'), variables('image')[1])]",
     "roleAssignmentsApiVersion": "2017-09-01",
     "rollingUpgrade": "[not(empty(parameters('instanceHealthProbeId')))]",
-    "runtimeInitUrl": "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/develop/develop/dist/f5-bigip-runtime-init-1.2.1-1.gz.run",
+    "runtimeInitUrl": "https://github.com/F5Networks/f5-bigip-runtime-init/releases/download/1.2.0/f5-bigip-runtime-init-1.2.0-1.gz.run",
     "scaleInTimeWindow": "[concat('PT', parameters('scaleInTimeWindow'), 'M')]",
     "scaleOutTimeWindow": "[concat('PT', parameters('scaleOutTimeWindow'), 'M')]",
     "singleQuote": "'",
