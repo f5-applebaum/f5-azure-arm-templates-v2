@@ -41,6 +41,7 @@ This ARM template creates a BIG-IP Virtual Machine (VM) and optionally associate
 | --- | --- | --- |
 | adminUsername | No | Enter a valid BIG-IP username. This creates the specified username on the BIG-IP with admin role. |
 | bigIpRuntimeInitConfig | Yes | Url to bigip-runtime-init configuration file or json string to use for configuration file. |
+| bigIpRuntimeInitPackageUrl | No | Supply a URL to the bigip-runtime-init package. |
 | image | No |  There are two acceptable formats: Enter the URN of the image to use in Azure marketplace, or enter the ID of the custom image. An example URN value: 'f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.002000'. You can find the URNs of F5 marketplace images in the README for this template or by running the command: ``az vm image list --output yaml --publisher f5-networks --all``. See [this documentation](https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html) for information on creating a custom BIG-IP image. |
 | instanceType | No | Enter a valid instance type. |
 | loadBalancerBackendAddressPoolsArray | No | Enter an array of pools where BIG-IP instance is to be added. |
@@ -70,12 +71,12 @@ This ARM template creates a BIG-IP Virtual Machine (VM) and optionally associate
 
 | Name | Description | Required Resource | Type |
 | --- | --- | --- | --- |
-| roleAssignmentID | Role Assignment resource ID | Role Definition | string |
+| roleAssignmentId | Role Assignment resource ID | Role Definition | string |
 | selfIp0 | Private IP addresses | Network Interface | string |
 | selfIp1 | Private IP addresses | Network Interface | string |
 | selfIp2 | Private IP addresses | Network Interface | string |
 | selfIp3 | Private IP addresses | Network Interface | string |
-| vmID | Virtual Machine resource ID | Virtual Machine | string |
+| vmId | Virtual Machine resource ID | Virtual Machine | string |
 
 
 ## Example Configurations
