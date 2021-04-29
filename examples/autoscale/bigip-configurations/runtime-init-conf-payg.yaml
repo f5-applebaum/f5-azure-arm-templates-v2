@@ -6,17 +6,24 @@ runtime_parameters:
       type: compute
       environment: azure
       field: name
-  - name: REGION
-    type: url
-    value: 'http://169.254.169.254/metadata/instance/compute?api-version=2020-09-01'
-    query: location
-    headers:
-      - name: Metadata
-        value: true
   - name: RESOURCE_GROUP_NAME
     type: url
     value: 'http://169.254.169.254/metadata/instance/compute?api-version=2020-09-01'
     query: resourceGroupName
+    headers:
+      - name: Metadata
+        value: true
+  - name: UNIQUE_STRING
+    type: url
+    value: 'http://169.254.169.254/metadata/instance/compute/tagsList?api-version=2020-09-01'
+    query: "[?name=='uniqueString'].value|[0]"
+    headers:
+      - name: Metadata
+        value: true
+  - name: WORKSPACE_ID
+    type: url
+    value: 'http://169.254.169.254/metadata/instance/compute/tagsList?api-version=2020-09-01'
+    query: "[?name=='workspaceId'].value|[0]"
     headers:
       - name: Metadata
         value: true
@@ -27,17 +34,10 @@ runtime_parameters:
     headers:
       - name: Metadata
         value: true
-  - name: UNIQUE_STRING
+  - name: REGION
     type: url
-    value: 'http://169.254.169.254/metadata/instance/compute/tagsList?api-version=2020-09-01'
-    query: "[?name=='uniqueString'].value"
-    headers:
-      - name: Metadata
-        value: true
-  - name: WORKSPACE_ID
-    type: url
-    value: 'http://169.254.169.254/metadata/instance/compute/tagsList?api-version=2020-09-01'
-    query: "[?name=='workspaceId'].value"
+    value: 'http://169.254.169.254/metadata/instance/compute?api-version=2020-09-01'
+    query: location
     headers:
       - name: Metadata
         value: true
@@ -45,9 +45,8 @@ bigip_ready_enabled: []
 extension_packages:
   install_operations:
     - extensionType: do
-      extensionVersion: 1.20.0
-      extensionHash: 02d29e99f76b1f9e2c99d4aee6dc73873f78735f430fe53139ca51c2d5f1fead
-      extensionUrl: https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.20.0/f5-declarative-onboarding-1.20.0-2.noarch.rpm
+      extensionVersion: 1.19.0
+      extensionHash: 15c1b919954a91b9ad1e469f49b7a0915b20de494b7a032da9eb258bbb7b6c49
     - extensionType: as3
       extensionVersion: 3.26.0
       extensionHash: b33a96c84b77cff60249b7a53b6de29cc1e932d7d94de80cc77fb69e0b9a45a0
@@ -67,26 +66,26 @@ extension_services:
         async: true
         Common:
           class: Tenant
-          dbVars:
+          My_DbVariables:
             class: DbVariables
             provision.extramb: 1000
             restjavad.useextramb: true
             ui.advisory.color: blue
             ui.advisory.text: "Provisioned via Runtime Init and DO"
-          myDns:
+          My_Dns:
             class: DNS
             nameServers:
-            - 168.63.129.16 
-          myNtp:
+              - 168.63.129.16
+          My_Ntp:
             class: NTP
             servers:
-            - pool.ntp.org
+              - 0.pool.ntp.org
             timezone: UTC
-          myProvisioning:
+          My_Provisioning:
             asm: nominal
             class: Provision
             ltm: nominal
-          mySystem:
+          My_System:
             class: System
             autoPhonehome: true
             hostname: '{{{HOST_NAME}}}.local'
@@ -113,19 +112,19 @@ extension_services:
               remark: Only required when TS is a local listener
               class: Service_TCP
               virtualAddresses:
-              - 255.255.255.254
+                - 255.255.255.254
               virtualPort: 6514
               iRules:
-              - telemetry_local_rule
+                - telemetry_local_rule
             telemetry:
               class: Pool
               members:
-              - enable: true
-                serverAddresses:
-                - 255.255.255.254
-                servicePort: 6514
+                - enable: true
+                  serverAddresses:
+                    - 255.255.255.254
+                  servicePort: 6514
               monitors:
-              - bigip: "/Common/tcp"
+                - bigip: "/Common/tcp"
             telemetry_hsl:
               class: Log_Destination
               type: remote-high-speed-log
@@ -140,17 +139,17 @@ extension_services:
             telemetry_publisher:
               class: Log_Publisher
               destinations:
-              - use: telemetry_formatted
+                - use: telemetry_formatted
             telemetry_asm_security_log_profile:
               class: Security_Log_Profile
               application:
                 localStorage: false
                 remoteStorage: splunk
                 servers:
-                - address: 255.255.255.254
-                  port: '6514'
+                  - address: 255.255.255.254
+                    port: '6514'
                 storageFilter:
-                  requestType: illegal 
+                  requestType: all
             shared_pool:
               class: Pool
               remark: Service 1 shared pool
@@ -167,51 +166,51 @@ extension_services:
               monitors:
                 - http
           HTTP_Service:
-            template: http
             class: Application
+            template: http
             serviceMain:
               class: Service_HTTP
               virtualAddresses:
-              - 0.0.0.0
-              snat: auto
+                - 0.0.0.0
               policyWAF:
                 use: WAFPolicy
+              pool: /Tenant_1/Shared/shared_pool
               securityLogProfiles:
-                - use: "/Tenant_1/Shared/telemetry_asm_security_log_profile"
-              pool: "/Tenant_1/Shared/shared_pool"
+                - use: /Tenant_1/Shared/telemetry_asm_security_log_profile
             WAFPolicy:
-              ignoreChanges: false
-              url: https://raw.githubusercontent.com/f5devcentral/f5-asm-policy-templates/master/generic_ready_template/Rapid_Depolyment_Policy_13_1.xml
-              enforcementMode: blocking
               class: WAF_Policy
+              url: >-
+                https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/master/examples/autoscale/bigip-configurations/Rapid_Depolyment_Policy_13_1.xml
+              enforcementMode: blocking
+              ignoreChanges: false
           HTTPS_Service:
-            template: https
             class: Application
+            template: https
             serviceMain:
+              class: Service_HTTPS
               virtualAddresses:
-              - 0.0.0.0
-              snat: auto
+                - 0.0.0.0
               policyWAF:
                 use: WAFPolicy
+              pool: /Tenant_1/Shared/shared_pool
               securityLogProfiles:
-                - use: "/Tenant_1/Shared/telemetry_asm_security_log_profile"
-              pool: "/Tenant_1/Shared/shared_pool"
+                - use: /Tenant_1/Shared/telemetry_asm_security_log_profile
               serverTLS:
-                bigip: "/Common/clientssl"
+                bigip: /Common/clientssl
               redirect80: false
-              class: Service_HTTPS
             WAFPolicy:
-              url: https://raw.githubusercontent.com/f5devcentral/f5-asm-policy-templates/master/generic_ready_template/Rapid_Depolyment_Policy_13_1.xml
-              ignoreChanges: false
-              enforcementMode: blocking
               class: WAF_Policy
+              url: >-
+                https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/master/examples/autoscale/bigip-configurations/Rapid_Depolyment_Policy_13_1.xml
+              enforcementMode: blocking
+              ignoreChanges: false
     - extensionType: ts
       type: inline
       value:
         class: Telemetry
         controls:
           class: Controls
-          logLevel: debug
+          logLevel: info
         My_Metrics_Namespace:
           class: Telemetry_Namespace
           My_System_Poller:
@@ -247,7 +246,6 @@ extension_services:
             class: Telemetry_Consumer
             maxBatchIntervalMs: 5000
             maxBatchSize: 250
-            trace: true
             type: Azure_Application_Insights
             useManagedIdentity: true
         My_Remote_Logs_Namespace:
@@ -255,10 +253,10 @@ extension_services:
           My_Listener:
             class: Telemetry_Listener
             port: 6514
-          Azure_Log_Analytics:
+          My_Azure_Log_Analytics:
             class: Telemetry_Consumer
             type: Azure_Log_Analytics
             workspaceId: '{{{WORKSPACE_ID}}}'
             useManagedIdentity: true
-            region: '{{{ REGION }}}'
+            region: '{{{REGION}}}'
 post_onboard_enabled: []
