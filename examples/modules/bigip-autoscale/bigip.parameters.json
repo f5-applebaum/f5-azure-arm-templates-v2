@@ -99,7 +99,7 @@
 			"value": ""
 		},
 		"vmScaleSetMaxCount": {
-			"value": 4
+			"value": 10
 		},
 		"vmScaleSetMinCount": {
 			"value": 2

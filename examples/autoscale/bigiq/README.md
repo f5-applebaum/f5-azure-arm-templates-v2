@@ -120,11 +120,18 @@ This solution leverages more traditional Auto Scale configuration management pra
 | Parameter | Required | Description |
 | --- | --- | --- |
 | appContainerName | No | The name of a container to download and install which is used for the example application server. If this value is left blank, the application module template is not deployed. |
+| appScalingMaxSize | No | Maximum number of application instances (2-100) that can be created in the Auto Scale Group. |
+| appScalingMinSize | No | Minimum number of application instances (1-99) you want available in the Auto Scale Group. |
 | artifactLocation | No | The directory, relative to the templateBaseUrl, where the modules folder is located. |
 | bigIpRuntimeInitConfig | No | Supply a URL to the bigip-runtime-init configuration file in YAML or JSON format, or an escaped JSON string to use for f5-bigip-runtime-init configuration. |
 | bigIpRuntimeInitPackageUrl | No | Supply a URL to the bigip-runtime-init package |
 | bigIpScalingMaxSize | No | Maximum number of BIG-IP instances (2-100) that can be created in the Auto Scale Group. |
 | bigIpScalingMinSize | No | Minimum number of BIG-IP instances (1-99) you want available in the Auto Scale Group. |
+| bigIpScaleInCpuThreshold | No | The percentage of CPU utilization that should trigger a scale in event. |
+| bigIpScaleInThroughputThreshold | No | The amount of throughput (**bytes**) that should trigger a scale in event. Note: The default value is equal to 10 MB. |
+| bigIpScaleInTimeWindow | No | The time window required to trigger a scale in event. This is used to determine the amount of time needed for a threshold to be breached, as well as to prevent excessive scaling events (flapping). **Note:** Allowed values are 1-60 (minutes). |
+| bigIpScaleOutCpuThreshold | No | The percentage of CPU utilization that should trigger a scale out event. |
+| bigIpScaleOutThroughputThreshold | No | The amount of throughput (**bytes**) that should trigger a scale out event. Note: The default value is equal to 20 MB. |
 | bigIqAddress | Yes | The IP address (or hostname) for the BIG-IQ used when licensing the BIG-IP. Note: The Azure function created by this template will make a REST call to the BIG-IQ (already existing) to revoke a license assignment when a BIG-IP instance is deallocated. This value should match the BIG-IQ address specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter. |
 | bigIqLicensePool | Yes | The BIG-IQ license pool to use during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ license pool specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter. This value should match the BIG-IQ license pool specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter. |
 | bigIqPassword | Yes | The BIG-IQ password to use during BIG-IP licensing via BIG-IQ; it will be stored as a secret in the Azure function KeyVault created by this template. This value should match the BIG-IQ password specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter. |
@@ -133,7 +140,8 @@ This solution leverages more traditional Auto Scale configuration management pra
 | bigIqUtilitySku | No | The BIG-IQ utility license SKU used during BIG-IP licensing via BIG-IQ. This value should match the BIG-IQ utility SKU specified in the F5 Declarative Onboarding declaration passed to the bigIpRuntimeInitConfig template parameter. |
 | bigIqVnetId | No | The fully-qualified Azure resource ID of the virtual network where BIG-IQ is deployed. This is required to allow inbound communication from the Azure license revocation function and the BIG-IQ device. Leave the default value if the BIG-IQ device uses a public IP address for licensing. |
 | image | No | Two formats accepted. `URN` of the image to use in Azure marketplace or `ID` of custom image. Example URN value: `f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:15.1.201000`. You can find the URNs of F5 marketplace images in the README for this template or by running the command: `az vm image list --output yaml --publisher f5-networks --all`. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image. |
-| restrictedSrcAddressMgmt | Yes | When creating management security group, this field restricts management access to a specific network or address. Enter an IP address or address range in CIDR notation, or asterisk for all sources. |
+| restrictedSrcAddressApp | Yes | When creating application security group, this field restricts application access to a specific network or address. Enter an IP address or address range in CIDR notation, or asterisk for all sources. |
+| restrictedSrcAddressMgmt | Yes | When creating management security group, this field restricts management access to a specific network or address. Enter an IP address or address range in CIDR notation. |
 | sshKey | Yes | Supply the public key that will be used for SSH authentication to the BIG-IP and application virtual machines. Note: This should be the public key as a string, typically starting with **---- BEGIN SSH2 PUBLIC KEY ----** and ending with **---- END SSH2 PUBLIC KEY ----**. |
 | tagValues | No | Default key/value resource tags will be added to the resources in this deployment, if you would like the values to be unique adjust them as needed for each key. |
 | templateBaseUrl | No | The publicly accessible URL where the linked ARM templates are located. |
@@ -150,8 +158,8 @@ This solution leverages more traditional Auto Scale configuration management pra
 | appVmssId | Application Virtual Machine Scale Set resource ID | Application Template | string |
 | bigIpUsername | BIG-IP user name | BIG-IP Template | string |
 | virtualNetworkId | Virtual Network resource ID | Network Template | string |
-| vmssId | BIG-IP Virtual Machine Scale Set resource ID | BIG-IP Template | string |
-| vmssName | BIG-IP Virtual Machine Scale Set name| BIG-IP Template | string |
+| bigIpVmssId | BIG-IP Virtual Machine Scale Set resource ID | BIG-IP Template | string |
+| bigIpVmssName | BIG-IP Virtual Machine Scale Set name| BIG-IP Template | string |
 | wafPublicIps | WAF Service Public IP Addresses | DAG Template | array |
 
 
@@ -175,6 +183,7 @@ An easy way to deploy this Azure Arm templates is to use the deploy button below
   - Select or Create New Resource Group
   - Fill in the *REQUIRED* parameters (with * next to them). 
     - **sshKey**
+    - **restrictedSrcAddressApp**
     - **restrictedSrcAddressMgmt**
     - **uniqueString**
     - **bigIqAddress**
@@ -207,7 +216,7 @@ RESOURCE_GROUP="myGroupName"
 REGION="eastus"
 DEPLOYMENT_NAME="myDeployment"
 TEMPLATE_URI="https://raw.githubusercontent.com/f5networks/f5-azure-arm-templates-v2/v1.2.0.0/examples/autoscale/bigiq/azuredeploy.json"
-DEPLOY_PARAMS='{"templateBaseUrl":{"value":"https://cdn.f5.com/product/cloudsolutions/"},"artifactLocation":{"value":"f5-azure-arm-templates-v2/v1.2.0.0/examples/"},"uniqueString":{"value":"<YOUR_VALUE>"},"sshKey":{"value":"<YOUR_VALUE>"},"instanceType":{"value":"Standard_DS4_v2"},"image":{"value":"f5-networks:f5-big-ip-advanced-waf:f5-big-awf-plus-hourly-25mbps:16.0.101000"},"appContainerName":{"value":"f5devcentral/f5-demo-app:latest"},"restrictedSrcAddressMgmt":{"value":"<YOUR_VALUE>"},"bigIpRuntimeInitConfig":{"value":"<YOUR_VALUE>"},"useAvailabilityZones":{"value":False},"tagValues":{"value":{"application":"APP","cost":"COST","environment":"ENV","group":"GROUP","owner":"OWNER"},"workspaceId":{"value":<YOUR_VALUE>},"bigIqAddress":{"value":"YOUR_VALUE"},"bigIqUsername":{"value":"YOUR_VALUE"},"bigIqPassword":{"value":"YOUR_VALUE"},"bigIqLicensePool":{"value":"YOUR_VALUE"},"bigIqTenant":{"value":"<YOUR_VALUE>"},"bigIqUtilitySku":{"value":"<YOUR_VALUE>"},"bigIqVnetId":{"value":"<YOUR_VALUE>"}}'
+DEPLOY_PARAMS='{"templateBaseUrl":{"value":"https://cdn.f5.com/product/cloudsolutions/"},"artifactLocation":{"value":"f5-azure-arm-templates-v2/v1.2.0.0/examples/"},"uniqueString":{"value":"<YOUR_VALUE>"},"sshKey":{"value":"<YOUR_VALUE>"},"instanceType":{"value":"Standard_DS4_v2"},"image":{"value":"f5-networks:f5-big-ip-advanced-waf:f5-big-awf-plus-hourly-25mbps:16.0.101000"},"appContainerName":{"value":"f5devcentral/f5-demo-app:latest"},"restrictedSrcAddressApp":{"value":"<YOUR_VALUE>"},"restrictedSrcAddressMgmt":{"value":"<YOUR_VALUE>"},"bigIpRuntimeInitConfig":{"value":"<YOUR_VALUE>"},"useAvailabilityZones":{"value":False},"tagValues":{"value":{"application":"APP","cost":"COST","environment":"ENV","group":"GROUP","owner":"OWNER"},"workspaceId":{"value":<YOUR_VALUE>},"bigIqAddress":{"value":"YOUR_VALUE"},"bigIqUsername":{"value":"YOUR_VALUE"},"bigIqPassword":{"value":"YOUR_VALUE"},"bigIqLicensePool":{"value":"YOUR_VALUE"},"bigIqTenant":{"value":"<YOUR_VALUE>"},"bigIqUtilitySku":{"value":"<YOUR_VALUE>"},"bigIqVnetId":{"value":"<YOUR_VALUE>"}}'
 DEPLOY_PARAMS_FILE=${TMP_DIR}/deploy_params.json
 echo ${DEPLOY_PARAMS} > ${DEPLOY_PARAMS_FILE}
 
@@ -232,7 +241,7 @@ ex. from azuredeploy.parameters.json
 
 ```
 
-**IMPORTANT**: Notice the "raw.githubusercontent.com". Any URLs pointing to github must use the raw convention.  
+**IMPORTANT**: Note the "raw.githubusercontent.com". Any URLs pointing to github **must** use the raw file format. 
 
 The F5 BIG-IP Runtime Init configuration file can also be formatted in json and/or passed directly inline:
 
@@ -423,11 +432,11 @@ To test the WAF service, perform the following steps:
   - **Azure CLI**: 
     - Public IPs: 
       ```shell
-      az vmss list-instance-public-ips --name ${uniqueId}-vmss -g ${RESOURCE_GROUP} -o json --query [].ipAddress
+      az vmss list-instance-public-ips --name ${uniqueId}-bigip-vmss -g ${RESOURCE_GROUP} -o json --query [].ipAddress
       ```
     - Private IPs: 
       ```shell 
-      az vmss nic list --vmss-name ${uniqueId}-vmss -g ${RESOURCE_GROUP} -o json --query [].ipConfigurations[].privateIpAddress
+      az vmss nic list --vmss-name ${uniqueId}-bigip-vmss -g ${RESOURCE_GROUP} -o json --query [].ipConfigurations[].privateIpAddress
       ```
 - Login in via SSH:
   - **SSH key authentication**: 
@@ -532,10 +541,14 @@ If a new configuration update fails (ex. invalid config, typo, etc) and Rolling 
         az deployment group cancel -n ${DEPLOYMENT_NAME} --resource-group ${RESOURCE_GROUP}
         ```
 2. [Cancel](https://docs.microsoft.com/en-us/cli/azure/vmss/rolling-upgrade?view=azure-cli-latest#az_vmss_rolling_upgrade_cancel) the Rolling Update
-    ```bash 
-    az vmss rolling-upgrade get-latest -n ${uniqueId}-vmss  --resource-group ${RESOURCE_GROUP}
-    az vmss rolling-upgrade cancel -n ${uniqueId}-vmss  --resource-group ${RESOURCE_GROUP}
-    ```
+    - **Console**: 
+      - Navigate to Resource Groups->**RESOURCE_GROUP**->**${uniqueId}-bigip-vmss**->Click the "View details" link at the end of the banner at the top of the screen "A Rolling Upgrade is in progress. To update the virtual machine scale set, you must wait until the upgrade is done or cancel the upgrade operation. View details"
+          - Hit "Cancel"
+    - **Azure CLI**: 
+      ```bash 
+      az vmss rolling-upgrade get-latest -n ${uniqueId}-bigip-vmss  --resource-group ${RESOURCE_GROUP}
+      az vmss rolling-upgrade cancel -n ${uniqueId}-bigip-vmss  --resource-group ${RESOURCE_GROUP}
+      ```
 3. Modify parameters to update the model
     - Modify the parameter that resulted in failure (ex. a previous or working **bigIpRuntimeInitConfig** value or image)
     - Modify Scaling Size to deploy new instances 
