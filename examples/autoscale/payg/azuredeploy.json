@@ -273,6 +273,8 @@
         "provisionApp":"[not(empty(parameters('appContainerName')))]",
         "appInsights":"[concat(variables('uniqueString'), '-insights')]",
         "appInsightsId":"[resourceId('Microsoft.Insights/components', variables('appInsights'))]",
+        "bigIpImage":"[parameters('bigIpImage')]",
+        "bigIpInstanceType":"[parameters('bigIpInstanceType')]",
         "bigIpVmScaleSetMaxCount":"[parameters('bigIpScalingMaxSize')]",
         "bigIpVmScaleSetMinCount":"[parameters('bigIpScalingMinSize')]",
         "cpuMetricName":"Percentage CPU",
@@ -373,8 +375,6 @@
         "customEmail":[
             
         ],
-        "image":"[parameters('bigIpImage')]",
-        "instanceType":"[parameters('bigIpInstanceType')]",
         "provisionPublicIpBigip":{
             "name":"publicIp01",
             "properties":{
@@ -616,7 +616,7 @@
                         "value":"[variables('uniqueString')]"
                     },
                     "image":{
-                        "value":"[variables('image')]"
+                        "value":"[variables('bigIpImage')]"
                     },
                     "inboundMgmtNatPoolId":{
                         "value":"[if(greater(variables('numberPublicMgmtIpAddresses'), 0), reference('dagTemplate').outputs.inboundMgmtNatPool.value, '')]"
