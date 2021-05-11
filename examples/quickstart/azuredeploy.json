@@ -22,14 +22,14 @@
 			},
 			"type": "string"
 		},
-		"image": {
+		"bigIpImage": {
 			"defaultValue": "f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly-f5:16.0.101000",
 			"metadata": {
 				"description": "2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.201000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image."
 			},
 			"type": "string"
 		},
-		"instanceType": {
+		"bigIpInstanceType": {
 			"defaultValue": "Standard_DS3_v2",
 			"metadata": {
 				"description": "Enter valid instance type."
@@ -237,8 +237,8 @@
 				},
 				"parameters": {
 					"adminUsername":{ "value": "[variables('adminUsername')]" },
-					"image":{ "value": "[parameters('image')]" },
-					"instanceType":{ "value": "[parameters('instanceType')]" },
+					"image":{ "value": "[parameters('bigIpImage')]" },
+					"instanceType":{ "value": "[parameters('bigIpInstanceType')]" },
 					"loadBalancerBackendAddressPoolsArray":{ "value": [] },
 					"mgmtSubnetId":{ "value": "[reference('networkTemplate').outputs.subnets.value[0]]" },
 					"mgmtNsgID":{ "value": "[reference('dagTemplate').outputs.nsg0Id.value]" },
@@ -272,6 +272,14 @@
             "type": "string",
             "value": "[reference('networkTemplate').outputs.virtualNetwork.value]"
         },
+		"bigIpUsername": {
+            "type": "string",
+            "value": "[variables('adminUsername')]"
+        },
+		"bigIpVmId": {
+            "type": "string",
+            "value": "[reference('bigipTemplate').outputs.vmId.value]"
+        },
 		"bigIpManagementPublicIp": {
             "type": "string",
             "value": "[reference('dagTemplate').outputs.mgmtIps.value[0]]"
@@ -288,20 +296,10 @@
             "type": "string",
             "value": "[if(equals(parameters('numNics'), 1), concat('https://', variables('mgmtSelfIp'), ':8443/'), concat('https://', variables('mgmtSelfIp'), ':443/'))]"
         },
-		"appVmName": {
-			"condition": "[variables('provisionApp')]",
-            "type": "string",
-            "value": "[reference('appTemplate').outputs.vmName.value]"
-        },
 		"wafPublicIps": {
 			"condition": "[variables('provisionApp')]",
             "type": "array",
             "value": "[reference('dagTemplate').outputs.externalIps.value]"
-        },
-		"appPrivateIp": {
-			"condition": "[variables('provisionApp')]",
-            "type": "string",
-            "value": "[reference('appTemplate').outputs.appIp.value]"
         },
 		"vip1PrivateIp": {
             "type": "string",
@@ -336,13 +334,15 @@
             "type": "string",
             "value": "[variables('adminUsername')]"
         },
-		"vmId": {
+		"appPrivateIp": {
+			"condition": "[variables('provisionApp')]",
             "type": "string",
-            "value": "[reference('bigipTemplate').outputs.vmId.value]"
+            "value": "[reference('appTemplate').outputs.appIp.value]"
         },
-		"bigIpUsername": {
+		"appVmName": {
+			"condition": "[variables('provisionApp')]",
             "type": "string",
-            "value": "[variables('adminUsername')]"
+            "value": "[reference('appTemplate').outputs.vmName.value]"
         }
 	}
 }

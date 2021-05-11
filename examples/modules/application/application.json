@@ -82,19 +82,15 @@
         "vmScaleSetMaxCount":{
             "defaultValue":10,
             "metadata":{
-                "description":"Maximum number of application instances (2-100) that can be created in the Auto Scale Group."
+                "description":"The maximum number of Application instances that can be deployed into the VM Scale Set."
             },
-            "minValue":2,
-            "maxValue":100,
             "type":"int"
         },
         "vmScaleSetMinCount":{
             "defaultValue":1,
             "metadata":{
-                "description":"Minimum number of application instances (1-99) you want available in the Auto Scale Group."
+                "description":"The minimum (and default) number of Application instances that will be deployed into the VM Scale Set."
             },
-            "minValue":1,
-            "maxValue":99,
             "type":"int"
         }
     },

@@ -102,7 +102,7 @@
 			"value": 10
 		},
 		"vmScaleSetMinCount": {
-			"value": 2
+			"value": 1
 		},
 		"vmssName": {
 			"value": "bigip-vmss"

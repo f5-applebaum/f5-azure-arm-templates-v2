@@ -40,6 +40,20 @@
             },
             "type":"string"
         },
+        "bigIpImage":{
+            "defaultValue":"f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:16.0.101000",
+            "metadata":{
+                "description":"2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.201000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image."
+            },
+            "type":"string"
+        },
+        "bigIpInstanceType":{
+            "defaultValue":"Standard_DS3_v2",
+            "metadata":{
+                "description":"Enter valid instance type."
+            },
+            "type":"string"
+        },
         "bigIpRuntimeInitConfig":{
             "defaultValue":"https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/master/examples/autoscale/bigip-configurations/runtime-init-conf-payg.yaml",
             "metadata":{
@@ -51,20 +65,6 @@
             "defaultValue":"https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/develop/develop/dist/f5-bigip-runtime-init-1.2.0-1.gz.run",
             "metadata":{
                 "description":"URL for BIG-IP Runtime Init package"
-            },
-            "type":"string"
-        },
-        "image":{
-            "defaultValue":"f5-networks:f5-big-ip-best:f5-bigip-virtual-edition-25m-best-hourly:16.0.101000",
-            "metadata":{
-                "description":"2 formats accepted. URN of the image to use in Azure marketplace or id of custom image. Example URN value: f5-networks:f5-big-ip-byol:f5-big-ltm-2slot-byol:15.1.201000. You can find the URNs of F5 marketplace images in the README for this template or by running the command: az vm image list --output yaml --publisher f5-networks --all. See https://clouddocs.f5.com/cloud/public/v1/azure/Azure_download.html for information on creating custom BIG-IP image."
-            },
-            "type":"string"
-        },
-        "instanceType":{
-            "defaultValue":"Standard_DS3_v2",
-            "metadata":{
-                "description":"Enter valid instance type."
             },
             "type":"string"
         },
@@ -90,7 +90,7 @@
             "defaultValue":20,
             "maxValue":100,
             "metadata":{
-                "description":"The percentage of CPU utilization that should trigger a scale in event. Required when customAutoscaleRules parameter not used."
+                "description":"The percentage of CPU utilization that should trigger a scale in event."
             },
             "minValue":1,
             "type":"int"
@@ -98,14 +98,14 @@
         "bigIpScaleInThroughputThreshold":{
             "defaultValue":10000000,
             "metadata":{
-                "description":"The amount of throughput (**bytes**) that should trigger a scale in event. Note: The default value is equal to 10 MB. Required when customAutoscaleRules parameter not used."
+                "description":"The amount of throughput (**bytes**) that should trigger a scale in event. Note: The default value is equal to 10 MB."
             },
             "type":"int"
         },
         "bigIpScaleInTimeWindow":{
             "defaultValue":10,
             "metadata":{
-                "description":"The time window required to trigger a scale in event. This is used to determine the amount of time needed for a threshold to be breached, as well as to prevent excessive scaling events (flapping). **Note:** Allowed values are 1-60 (minutes). Required when customAutoscaleRules parameter not used."
+                "description":"The time window required to trigger a scale in event. This is used to determine the amount of time needed for a threshold to be breached, as well as to prevent excessive scaling events (flapping). **Note:** Allowed values are 1-60 (minutes)."
             },
             "minValue":1,
             "type":"int"
@@ -114,7 +114,7 @@
             "defaultValue":80,
             "maxValue":100,
             "metadata":{
-                "description":"The percentage of CPU utilization that should trigger a scale out event. Required when customAutoscaleRules parameter not used."
+                "description":"The percentage of CPU utilization that should trigger a scale out event."
             },
             "minValue":1,
             "type":"int"
@@ -122,14 +122,14 @@
         "bigIpScaleOutThroughputThreshold":{
             "defaultValue":20000000,
             "metadata":{
-                "description":"The amount of throughput (**bytes**) that should trigger a scale out event. Note: The default value is equal to 20 MB. Required when customAutoscaleRules parameter not used."
+                "description":"The amount of throughput (**bytes**) that should trigger a scale out event. Note: The default value is equal to 20 MB."
             },
             "type":"int"
         },
         "bigIpScaleOutTimeWindow":{
             "defaultValue":10,
             "metadata":{
-                "description":"The time window required to trigger a scale out event. This is used to determine the amount of time needed for a threshold to be breached, as well as to prevent excessive scaling events (flapping). **Note:** Allowed values are 1-60 (minutes). Required when customAutoscaleRules parameter not used."
+                "description":"The time window required to trigger a scale out event. This is used to determine the amount of time needed for a threshold to be breached, as well as to prevent excessive scaling events (flapping). **Note:** Allowed values are 1-60 (minutes)."
             },
             "minValue":1,
             "type":"int"
@@ -158,7 +158,7 @@
         "appScalingMinSize":{
             "defaultValue":1,
             "metadata":{
-                "description":"Minimum number of application instances (1-99) you want available in the Auto Scale Group."
+                "description":"Minimum number of Application instances (1-99) you want available in the Auto Scale Group."
             },
             "minValue":1,
             "maxValue":99,
@@ -167,7 +167,7 @@
         "appScalingMaxSize":{
             "defaultValue":10,
             "metadata":{
-                "description":"Maximum number of application instances (2-100) that can be created in the Auto Scale Group."
+                "description":"Maximum number of Application instances (2-100) that can be created in the Auto Scale Group."
             },
             "minValue":2,
             "maxValue":100,
@@ -373,8 +373,8 @@
         "customEmail":[
             
         ],
-        "image":"[parameters('image')]",
-        "instanceType":"[parameters('instanceType')]",
+        "image":"[parameters('bigIpImage')]",
+        "instanceType":"[parameters('bigIpInstanceType')]",
         "provisionPublicIpBigip":{
             "name":"publicIp01",
             "properties":{
@@ -628,7 +628,7 @@
                         "value":"[reference('dagTemplate').outputs.externalLoadBalancerProbesId.value[0]]"
                     },
                     "instanceType":{
-                        "value":"[variables('instanceType')]"
+                        "value":"[variables('bigIpInstanceType')]"
                     },
                     "loadBalancerBackendAddressPoolsArray":{
                         "value":[
@@ -646,11 +646,11 @@
                     "roleDefinitionId":{
                         "value":"[variables('roleDefinitionId')]"
                     },
-                    "bigIpRuntimeInitPackageUrl":{
-                        "value":"[parameters('bigIpRuntimeInitPackageUrl')]"
-                    },
                     "bigIpRuntimeInitConfig":{
                         "value":"[parameters('bigIpRuntimeInitConfig')]"
+                    },
+                    "bigIpRuntimeInitPackageUrl":{
+                        "value":"[parameters('bigIpRuntimeInitPackageUrl')]"
                     },
                     "scaleInCpuThreshold":{
                         "value":"[variables('scaleInCpuThreshold')]"
@@ -702,27 +702,22 @@
         }
     ],
     "outputs":{
-        "virtualNetworkId":{
-            "type":"string",
-            "value":"[reference('networkTemplate').outputs.virtualNetwork.value]"
-        },
-        "appVmssName":{
+        "appUsername":{
             "condition":"[variables('provisionApp')]",
             "type":"string",
-            "value":"[reference('appTemplate').outputs.vmssName.value]"
+            "value":"[variables('adminUsername')]"
         },
         "appVmssId":{
             "condition":"[variables('provisionApp')]",
             "type":"string",
             "value":"[reference('appTemplate').outputs.vmssId.value]"
         },
-        "wafPublicIps":{
+        "appVmssName":{
             "condition":"[variables('provisionApp')]",
-            "type":"array",
-            "value":"[reference('dagTemplate').outputs.externalIps.value]"
+            "type":"string",
+            "value":"[reference('appTemplate').outputs.vmssName.value]"
         },
-        "appUsername":{
-            "condition":"[variables('provisionApp')]",
+        "bigIpUsername":{
             "type":"string",
             "value":"[variables('adminUsername')]"
         },
@@ -734,9 +729,14 @@
             "type":"string",
             "value":"[reference('bigipTemplate').outputs.vmssName.value]"
         },
-        "bigIpUsername":{
+        "virtualNetworkId":{
             "type":"string",
-            "value":"[variables('adminUsername')]"
+            "value":"[reference('networkTemplate').outputs.virtualNetwork.value]"
+        },
+        "wafPublicIps":{
+            "condition":"[variables('provisionApp')]",
+            "type":"array",
+            "value":"[reference('dagTemplate').outputs.externalIps.value]"
         }
     }
 }

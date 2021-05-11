@@ -1,0 +1,125 @@
+---
+extension_packages:
+  install_operations:
+  - extensionHash: 536eccb9dbf40aeabd31e64da8c5354b57d893286ddc6c075ecc9273fcca10a1
+    extensionType: do
+    extensionVersion: 1.16.0
+  - extensionHash: de615341b91beaed59195dceefc122932580d517600afce1ba8d3770dfe42d28
+    extensionType: as3
+    extensionVersion: 3.23.0
+extension_services:
+  service_operations:
+  - extensionType: do
+    type: inline
+    value:
+      schemaVersion: 1.0.0
+      class: Device
+      async: true
+      label: Standalone 1NIC BIG-IP declaration for Declarative Onboarding that licenses BIG-IP via BIG-IQ and uses custom DNS servers
+      Common:
+        class: Tenant
+        myDns:
+          class: DNS
+          nameServers:
+            - 8.8.8.8
+        myNtp:
+          class: NTP
+          servers:
+            - 0.pool.ntp.org
+          timezone: UTC
+        mySystem:
+          autoPhonehome: true
+          class: System
+          hostname: '{{{ HOST_NAME }}}.local'
+        myLicense:
+          bigIpPassword: '{{{ BIGIP_PASSWORD }}}'
+          bigIpUsername: admin
+          bigIqHost: 10.0.1.200
+          bigIqPassword: '{{{ BIGIQ_PASSWORD }}}'
+          bigIqUsername: admin
+          class: License
+          licensePool: myPool
+          licenseType: licensePool
+          reachable: false
+          skuKeyword1: key1
+          skuKeyword2: key2
+          unitOfMeasure: hourly
+        myProvisioning:
+          class: Provision
+          ltm: nominal
+          asm: nominal
+        admin:
+          class: User
+          userType: regular
+          password: '{{{ BIGIP_PASSWORD }}}'
+          shell: bash
+  - extensionType: as3
+    type: inline
+    value:
+      action: deploy
+      class: AS3
+      declaration:
+        Sample_http_01:
+          A1:
+            My_ASM_Policy:
+              class: WAF_Policy
+              ignoreChanges: true
+              enforcementMode: blocking
+              url: https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/master/examples/quickstart/bigip-configurations/Rapid_Depolyment_Policy_13_1.xml
+            class: Application
+            serviceMain:
+              class: Service_HTTP
+              policyWAF:
+                use: My_ASM_Policy
+              pool: webPool
+              virtualAddresses:
+              - 0.0.0.0
+              virtualPort: 80
+            template: http
+            webPool:
+              class: Pool
+              members:
+              - serverAddresses:
+                - 10.0.1.4
+                servicePort: 80
+              monitors:
+              - http
+          class: Tenant
+        class: ADC
+        label: Sample1
+        remark: HTTPwithcustompersistence
+        schemaVersion: 3.0.0
+      persist: true
+post_onboard_enabled: []
+pre_onboard_enabled:
+  - name: provision_rest
+    type: inline
+    commands:
+      - /usr/bin/setdb provision.extramb 1000
+      - /usr/bin/setdb restjavad.useextramb true
+      - '/usr/bin/curl -s -f -u admin: -H "Content-Type: application/json" -d ''{"maxMessageBodySize":134217728}'' -X POST http://localhost:8100/mgmt/shared/server/messaging/settings/8100 | jq .'
+  - name: provision_modules
+    type: inline
+    commands:
+      - echo 'sys provision asm { level nominal }' >> bigip_base.conf
+runtime_parameters:
+- name: HOST_NAME
+  type: metadata
+  metadataProvider:
+    environment: azure
+    type: compute
+    field: name
+- name: BIGIQ_PASSWORD
+  type: secret
+  secretProvider:
+    type: KeyVault
+    environment: azure
+    vaultUrl: https://myVaultName.vault.azure.net
+    secretId: myBigiqSecret
+- name: BIGIP_PASSWORD
+  type: secret
+  secretProvider:
+    type: KeyVault
+    environment: azure
+    vaultUrl: https://myVaultName.vault.azure.net
+    secretId: myBigipSecret
