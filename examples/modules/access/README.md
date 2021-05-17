@@ -65,29 +65,30 @@ This solution uses an ARM template to launch a stack for provisioning Access rel
 
 | Parameter | Required | Description |
 | --- | --- | --- |
-| builtInRoleType | Yes | Specifies built-in role type name. Allowed values are 'Owner', 'Contributor', 'UserAccessAdministrator'.|
-| customRoleName| No | Provides value for custom role definiton which will be created by the template. |
-| customRoleDescription | No | Description for custom role. |
-| customRoleActions | No | List of actions permitted by Role. For example: Microsoft.Resources/subscriptions/resourceGroups/read |
-| customRoleNotActions | No | List of not actions permitted by Role; example: Microsoft.Resources/subscriptions/resourceGroups/delete |
+| builtInRoleType | No | Specifies built-in role type name. Allowed values are 'Owner', 'Contributor', 'UserAccessAdministrator'. |
 | customRoleAssignableScopes | No | List of scopes applied to Role. |
+| customRoleDescription | No | Description for custom role. |
+| customRoleName| No | Provides value for custom role definiton which will be created by the template. |
+| customRolePermissions| No | Array of permissions for the custom roleDefinition. |
 | keyVaultName | No | Key Vault name. |
-| userAssignedIdentityName | No | User Assigned Identity name. |
+| keyVaultPermissionsKeys | No | Array of permissions allowed on KeyVault Secrets for role. |
+| keyVaultPermissionsSecrets | No | Array of permissions allowed on KeyVault Secrets for role. |
 | secretName | No | Enter the secret name. |
 | secretValue | No | Enter the secret value. |
-
+| userAssignedIdentityName | No | User Assigned Identity name. |
+| tagValues | No | Default key/value resource tags will be added to the resources in this deployment, if you would like the values to be unique, adjust them as needed for each key. |
 
 ### Template Outputs
 
 | Name | Description | Required Resource | Type |
 | --- | --- | --- | --- |
 | builtInRoleId | Built-in role resource ID | None | string |
-| userAssignedIdentityName | User assigned identity name | User Assigned Identity | string |
 | customRoleDefinitionId | Custom role definition resource ID | Custom Role Definition | string |
 | keyVaultName | Key Vault name | Key Vault | string |
 | secretName | Secret name | Secret | string |
+| userAssignedIdentityName | User assigned identity name | User Assigned Identity | string |
 
 ## Resource Creation Flow Chart
 
 
-![Resource Creation Flow Chart](https://github.com/F5Networks/f5-azure-arm-templates-v2/blob/master/examples/images/azure-access-module.png)
+![Resource Creation Flow Chart](https://github.com/F5Networks/f5-azure-arm-templates-v2/blob/v1.3.0.0/examples/images/azure-access-module.png)

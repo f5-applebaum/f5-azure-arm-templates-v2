@@ -39,21 +39,23 @@ This template deploys a simple example application. It launches a linux VM used 
 
 | Parameter | Required | Description |
 | --- | --- | --- |
-| vnetName | Yes | Virtual Network name. |
-| vnetResourceGroupName | Yes | Azure Resource Group used for scoping resources. |
-| subnetName | Yes | Private subnet name for the Virtual Machine. |
-| appPrivateAddress | Yes | Desire private IP; must be within private subnet. |
-| adminUsername | Yes | User name for the Virtual Machine. |
-| adminPassword | Yes | Password for the Virtual Machine. |
-| dnsLabel | Yes | Unique DNS Name for the Public IP address used to access the Virtual Machine. |
-| instanceName | Yes | Name of the Virtual Machine. |
-| instanceType | Yes | Instance size of the Virtual Machine. |
-| initScriptDeliveryLocation | No | URI to bash init script. |
-| initScriptParameters | No | Parameters used for init script; multiple parameters must be provided as a space-separated string. |
-| cloudInitDeliveryLocation | No | URI to cloud-init config. |
+| adminUsername | No | User name for the Virtual Machine. |
+| appContainerName | No | The docker container to use when deploying the example application. |
+| cloudInitUrl | No | URI to cloud-init config. |
+| createAutoscaleGroup | No | Choose true to create the application instances in an autoscaling configuration. |
+| instanceName | No | Name of the Virtual Machine. |
+| instanceType | No | Enter valid instance type. |
+| nsgId | No | Private NSG ID for the Virtual Machine. |
+| sshKey | Yes | Supply the SSH public key you want to use to connect to the application instance. |
+| subnetId | Yes | Private subnet ID for the Virtual Machine. |
+| tagValues | No | Default key/value resource tags will be added to the resources in this deployment, if you would like the values to be unique, adjust them as needed for each key. |
 
 ### Template Outputs
 
 | Name | Description | Required Resource | Type |
 | --- | --- | --- | --- |
 | appIp | Virtual Machine private IP address | Virtual Machine | string |
+| resourceGroup | Virtual Machine Scale Set Resource Group | Virtual Machine Scale Set | string |
+| vmName | Virtual Machine Name | Virtual Machine | string |
+| vmssId | Virtual Machine Scale Set resource ID | Virtual Machine Scale Set | string |
+| vmssName | Virtual Machine Scale Set Name | Virtual Machine Scale Set | string |

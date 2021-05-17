@@ -1,24 +1,18 @@
 {
 	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-	"contentVersion": "1.0.0.0",
+	"contentVersion": "1.3.0.0",
 	"parameters": {
-		"appNsg": {
-			"value": "Default"
-		},
-		"mgmtNsg": {
-			"value": "Default"
+		"createNatGateway": {
+			"value": false
 		},
 		"numSubnets": {
 			"value": 1
 		},
-		"provisionPublicIP": {
-			"value": false
+		"vnetName": {
+			"value": "virtualNetwork"
 		},
-		"restrictedSrcMgmtAddress": {
-			"value": "*"
-		},
-		"restrictedSrcMgmtPort": {
-			"value": "*"
+		"vnetAddressPrefix": {
+			"value": "10.0"
 		},
 		"tagValues": {
 			"value": {
@@ -28,12 +22,6 @@
 				"group": "GROUP",
 				"owner": "OWNER"
 			}
-		},
-		"virtualNetworkName": {
-			"value": "virtualNetwork"
-		},
-		"vnetAddressPrefix": {
-			"value": "10.0"
 		}
 	}
 }
