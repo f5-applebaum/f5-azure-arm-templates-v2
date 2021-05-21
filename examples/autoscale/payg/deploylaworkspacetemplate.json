@@ -110,6 +110,10 @@
         "workbookId": {
             "type": "string",
             "value": "[resourceId( 'microsoft.insights/workbooks', guid(resourceGroup().id,parameters('uniqueString'),'waf-view-workbook'))]"
+        },
+        "workbookPrimarySharedKey": {
+            "type": "string",
+            "value":  "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))).primarySharedKey]"
         }
     }
 }
