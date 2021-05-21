@@ -52,7 +52,9 @@
         "keyVaultPermissionsKeys": [],
         "keyVaultPermissionsSecrets": [],
         "secretName": "",
-        "userAssignedIdentityName": "[concat(variables('uniqueString'), '-userIdentity')]"
+        "userAssignedIdentityName": "[concat(variables('uniqueString'), '-userIdentity')]",
+
+        "provisionTelemetry": true
     },
     "resources":[
         {
@@ -108,9 +110,9 @@
         },
         {
             "type":"Microsoft.Resources/deployments",
-            "condition":"[variables('provisionApp')]",
+            "condition":"[variables('provisionTelemetry')]",
             "apiVersion":"[variables('deploymentApiVersion')]",
-            "name":"appTemplate",
+            "name":"telemetryTemplate",
             "dependsOn":[
                 "accessTemplate"
             ],
