@@ -72,7 +72,8 @@
         "resourceGroupName": "[resourceGroup().name]",
         "singleQuote": "'",
         "appInsightsId": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/microsoft.insights/components/',parameters('uniqueString'),'-insights')]",
-        "workspaceId":  "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]" 
+        "workspaceId":  "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
+        "deploymentScriptName": "PrePopulateWorkspaceTable",
     },
     "resources": [
         {
@@ -104,7 +105,7 @@
             }
         },
         {
-            "name": "[variables('deploymentScriptNameWafLog')]",
+            "name": "[variables('deploymentScriptName')]",
             "type": "Microsoft.Resources/deploymentScripts",
             "condition": "[not(empty(parameters('userAssignedIdentity')))]",
             "apiVersion": "2019-10-01-preview",
