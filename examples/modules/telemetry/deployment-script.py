@@ -81,28 +81,28 @@ def main():
 
     if options.resource_group:
         resource_group = options.resource_group
-    elif 'resource_group' in e:
+    elif 'RESOURCE_GROUP' in e:
         resource_group = e['RESOURCE_GROUP']
     else: 
         print("error: resource_group key not found")
 
     if options.workspace_name:
         workspace_name = options.workspace_name
-    elif 'workspace_name' in e:
+    elif 'WORKSPACE_NAME' in e:
         workspace_name = e['WORKSPACE_NAME']
     else: 
         print("error: workspace_name key not found")
 
     if options.customer_id:
         customer_id = options.customer_id
-    elif 'customer_id' in e:
+    elif 'CUSTOMER_ID' in e:
         customer_id = e['CUSTOMER_ID']
     else: 
         print("error: customer_id key not found")
 
     if options.shared_key:
         shared_key = options.shared_key
-    elif 'shared_key' in e:
+    elif 'SHARED_KEY' in e:
         shared_key = e['SHARED_KEY']
     else:
         # ARM Template doesn't seem to have property to retrieve the Shared Keys
@@ -118,7 +118,7 @@ def main():
 
     if options.log_type:
         log_type = options.log_type
-    elif 'log_type' in e:
+    elif 'LOG_TYPE' in e:
         log_type = e['LOG_TYPE']
     else:
         log_type="F5Telemetry_ASM"
