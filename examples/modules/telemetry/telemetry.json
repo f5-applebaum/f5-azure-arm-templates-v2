@@ -112,7 +112,7 @@
             "identity": {
               "type": "UserAssigned",
               "userAssignedIdentities": {
-                "[parameters('userAssignedIdentity')]": {}
+                "[parameters('userAssignManagedIdentity')]": {}
               }
             },
             "location": "[resourceGroup().location]",
