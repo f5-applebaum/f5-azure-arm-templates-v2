@@ -107,7 +107,7 @@
         {
             "name": "[variables('deploymentScriptName')]",
             "type": "Microsoft.Resources/deploymentScripts",
-            "condition": "[not(empty(parameters('userAssignedIdentity')))]",
+            "condition": "[not(empty(parameters('userAssignManagedIdentity')))]",
             "apiVersion": "2019-10-01-preview",
             "identity": {
               "type": "UserAssigned",
