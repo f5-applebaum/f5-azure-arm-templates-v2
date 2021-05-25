@@ -19,16 +19,18 @@ from optparse import OptionParser
 from azure.cli.core import get_default_cli
 import tempfile
 import logging
-FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 
+logger = logging.getLogger()
+FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 
 #####################
 ######Functions######  
 #####################
 
-def get_console_handler():
+def get_console_handler(level):
    console_handler = logging.StreamHandler(sys.stdout)
    console_handler.setFormatter(FORMATTER)
+   console_handler.setLevel(level)
    return console_handler
 
 # Build the API signature
@@ -85,22 +87,22 @@ def main():
     parser.add_option("-i", "--customer_id", action="store", type="string", dest="customer_id", help="Workspace ID. ex. 2a27786d-60ce-45de-b5ba-06b605fdXXXXX" )
     parser.add_option("-k", "--shared_key", action="store", type="string", dest="shared_key", help="Primary Shared Key ex. H7UcHMuW8SLQ8gYJQpJ7xuFBXTZy1nnNjkBoWTleJcoTtcsllH/Ld5hrSNYxY81XRX" )
     parser.add_option("-t", "--log_type", action="store", type="string", dest="log_type", help="Azure Log Type ex. F5Telemetry_ASM" )
-    parser.add_option("-l", "--script_log_level", action="store", type="string", dest="script_log_level", default=False, help="Script Logging Level. ex. INFO, DEBUG" )
+    parser.add_option("-l", "--script_log_level", action="store", type="string", dest="script_log_level", help="Script Logging Level. ex. INFO, DEBUG" )
 
     (options, args) = parser.parse_args()
     e = dict(os.environ.items())
 
-    logger = logging.getLogger()
-    logger.addHandler(get_console_handler())
-
     if options.script_log_level:
         script_log_level = options.script_log_level
         logger.setLevel(script_log_level.upper())
+        logger.addHandler(get_console_handler(script_log_level.upper()))
     elif 'SCRIPT_LOG_LEVEL' in e:
-        script_log_level = e['LOG_LEVEL']
+        script_log_level = e['SCRIPT_LOG_LEVEL']
         logger.setLevel(script_log_level.upper())
+        logger.addHandler(get_console_handler(script_log_level.upper()))
     else: 
         logger.setLevel(logging.INFO)
+        logger.addHandler(get_console_handler(logging.INFO))
 
     if options.resource_group:
         resource_group = options.resource_group
