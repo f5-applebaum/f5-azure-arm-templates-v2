@@ -28,10 +28,10 @@ FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(
 #####################
 
 def get_console_handler(level):
-   console_handler = logging.StreamHandler(sys.stdout)
-   console_handler.setFormatter(FORMATTER)
-   console_handler.setLevel(level)
-   return console_handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(FORMATTER)
+    console_handler.setLevel(level)
+    return console_handler
 
 # Build the API signature
 def build_signature(customer_id, shared_key, date, content_length, method, content_type, resource):
@@ -152,7 +152,7 @@ def main():
             logger.error("Exiting. Workspace Shared Key NOT found. Check Deployment Script's userAssignedIdentity permissions to access the Workspace.")
             sys.exit(1)
 
-    # An example JSON web monitor object
+    # ASM Log Format
     json_data = [{
 	    "hostname": "",
 	    "management_ip_address": "",
