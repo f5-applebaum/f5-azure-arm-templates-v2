@@ -7,8 +7,8 @@
 
 # Usage: Pass RESOURCE_GROUP, WORKSPACE_NAME and CUSTOMER_ID as ENV vars 
 
-
 import os
+import sys
 import json
 import requests
 import datetime
@@ -18,10 +18,18 @@ import base64
 from optparse import OptionParser
 from azure.cli.core import get_default_cli
 import tempfile
+import logging
+FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+
 
 #####################
 ######Functions######  
 #####################
+
+def get_console_handler():
+   console_handler = logging.StreamHandler(sys.stdout)
+   console_handler.setFormatter(FORMATTER)
+   return console_handler
 
 # Build the API signature
 def build_signature(customer_id, shared_key, date, content_length, method, content_type, resource):
@@ -52,9 +60,11 @@ def post_data(customer_id, shared_key, body, log_type):
 
     response = requests.post(uri,data=body, headers=headers)
     if (response.status_code >= 200 and response.status_code <= 299):
-        print('Log Message Accepted to API Ingestion Datasource')
+        logger.info('SUCCESS: Log Message Accepted to API Ingestion Datasource')
+        return 0
     else:
-        print("Response code: {}".format(response.status_code))
+        logger.error("Response Code: {}".format(response.status_code))
+        return 1
 
 def az_cli (args_str):
     # TypeError: a bytes-like object is required, not 'str'
@@ -74,47 +84,44 @@ def main():
     parser.add_option("-w", "--workspace_name", action="store", type="string", dest="workspace_name", help="Workspace Name. ex. f5telemetry" )
     parser.add_option("-i", "--customer_id", action="store", type="string", dest="customer_id", help="Workspace ID. ex. 2a27786d-60ce-45de-b5ba-06b605fdXXXXX" )
     parser.add_option("-k", "--shared_key", action="store", type="string", dest="shared_key", help="Primary Shared Key ex. H7UcHMuW8SLQ8gYJQpJ7xuFBXTZy1nnNjkBoWTleJcoTtcsllH/Ld5hrSNYxY81XRX" )
-    parser.add_option("-t", "--log_type", action="store", type="string", dest="log_type", help="Log Type ex. F5Telemetry_ASM" )
+    parser.add_option("-t", "--log_type", action="store", type="string", dest="log_type", help="Azure Log Type ex. F5Telemetry_ASM" )
+    parser.add_option("-l", "--script_log_level", action="store", type="string", dest="script_log_level", default=False, help="Script Logging Level. ex. INFO, DEBUG" )
 
     (options, args) = parser.parse_args()
     e = dict(os.environ.items())
+
+    logger = logging.getLogger()
+    logger.addHandler(get_console_handler())
+
+    if options.script_log_level:
+        script_log_level = options.script_log_level
+        logger.setLevel(script_log_level.upper())
+    elif 'SCRIPT_LOG_LEVEL' in e:
+        script_log_level = e['LOG_LEVEL']
+        logger.setLevel(script_log_level.upper())
+    else: 
+        logger.setLevel(logging.INFO)
 
     if options.resource_group:
         resource_group = options.resource_group
     elif 'RESOURCE_GROUP' in e:
         resource_group = e['RESOURCE_GROUP']
     else: 
-        print("error: resource_group key not found")
+        logger.error("resource_group key not found")
 
     if options.workspace_name:
         workspace_name = options.workspace_name
     elif 'WORKSPACE_NAME' in e:
         workspace_name = e['WORKSPACE_NAME']
     else: 
-        print("error: workspace_name key not found")
+        logger.error("workspace_name key not found")
 
     if options.customer_id:
         customer_id = options.customer_id
     elif 'CUSTOMER_ID' in e:
         customer_id = e['CUSTOMER_ID']
     else: 
-        print("error: customer_id key not found")
-
-    if options.shared_key:
-        shared_key = options.shared_key
-    elif 'SHARED_KEY' in e:
-        shared_key = e['SHARED_KEY']
-    else:
-        # ARM Template doesn't seem to have property to retrieve the Shared Keys
-        command = f"monitor log-analytics workspace get-shared-keys --resource-group {resource_group} --workspace-name {workspace_name}"
-        print("Workspace Shared Key Not Passed, obtaining via az cli command: '", command, "'")
-        code, response = az_cli( command )
-        #print("code: %s" % (code))
-        #print("keys: %s" % (response))
-        if 'primarySharedKey' in response:
-            print("Workspace Shared Keys found")
-            response_json = json.loads(response)
-            shared_key = response_json['primarySharedKey']
+        logger.error("customer_id key not found")
 
     if options.log_type:
         log_type = options.log_type
@@ -122,6 +129,26 @@ def main():
         log_type = e['LOG_TYPE']
     else:
         log_type="F5Telemetry_ASM"
+
+    if options.shared_key:
+        shared_key = options.shared_key
+    elif 'SHARED_KEY' in e:
+        shared_key = e['SHARED_KEY']
+    else:
+        # ARM Template doesn't seem to have property to retrieve the Shared Keys
+        logger.info("Workspace Shared Key Not Passed, obtaining via az cli command: ")
+        command = f"monitor log-analytics workspace get-shared-keys --resource-group {resource_group} --workspace-name {workspace_name}"
+        logger.info(command)
+        code, response = az_cli( command )
+        if 'primarySharedKey' in response:
+            logger.info("Workspace Shared Keys found")
+            response_json = json.loads(response)
+            shared_key = response_json['primarySharedKey']
+        else:
+            logger.debug("code: %s" % (code))
+            logger.debug("keys: %s" % (response))
+            logger.error("Exiting. Workspace Shared Key NOT found. Check Deployment Script's userAssignedIdentity permissions to access the Workspace.")
+            sys.exit(1)
 
     # An example JSON web monitor object
     json_data = [{
