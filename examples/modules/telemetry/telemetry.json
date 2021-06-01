@@ -70,12 +70,13 @@
     }
   },
   "variables": {
-    "subscriptionID": "[subscription().subscriptionId]",
-    "resourceGroupName": "[resourceGroup().name]",
-    "uniqueString": "[toLower(parameters('uniqueString'))]",
-    "singleQuote": "'",
-    "networkApiVersion": "2020-10-20",
     "appInsightsId": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/microsoft.insights/components/',parameters('uniqueString'),'-insights')]",
+    "deploymentScriptName": "PrePopulateWorkspaceTable",
+    "networkApiVersion": "2020-10-20",
+    "resourceGroupName": "[resourceGroup().name]",
+    "singleQuote": "'",
+    "subscriptionID": "[subscription().subscriptionId]",
+    "uniqueString": "[toLower(parameters('uniqueString'))]",
     "workspaceId":  "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
   },
   "resources": [
