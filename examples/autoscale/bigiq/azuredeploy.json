@@ -1,6 +1,6 @@
 {
     "$schema":"http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
-    "contentVersion":"1.3.0.0",
+    "contentVersion":"1.3.1.0",
     "parameters":{
         "templateBaseUrl":{
             "defaultValue":"https://cdn.f5.com/product/cloudsolutions/",
@@ -55,7 +55,7 @@
             "type":"string"
         },
         "bigIpRuntimeInitConfig":{
-            "defaultValue":"https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/v1.3.0.0/examples/autoscale/bigip-configurations/runtime-init-conf-bigiq.yaml",
+            "defaultValue":"https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates-v2/v1.3.1.0/examples/autoscale/bigip-configurations/runtime-init-conf-bigiq.yaml",
             "metadata":{
                 "description":"Supply a URL to the bigip-runtime-init configuration file in YAML or JSON format, or an escaped JSON string to use for f5-bigip-runtime-init configuration."
             },
@@ -137,9 +137,9 @@
             "type":"int"
         },
         "useAvailabilityZones":{
-            "defaultValue":true,
+            "defaultValue":false,
             "metadata":{
-                "description":"This deployment can deploy resources into Azure Availability Zones (if the region supports it).  If that is not desired the input should be set 'No'. If the region does not support availability zones the input should be set to No."
+                "description":"This deployment can deploy resources into Azure Availability Zones (if the region supports it).  If that is not desired the input should be set false. If the region does not support availability zones the input should be set to false."
             },
             "type":"bool"
         },
@@ -186,6 +186,13 @@
                 "description":"The fully-qualified Azure resource ID of the virtual network where BIG-IQ is deployed. This is required to allow inbound communication from the Azure license revocation function and the BIG-IQ device. Leave the default value if the BIG-IQ device uses a public IP address for licensing."
             },
             "type":"string"
+        },
+        "createWorkspace": {
+            "defaultValue":true,
+            "metadata":{
+                "description":"This deployment will create a workspace and workbook as part of the Telemetry module, intended for enabling Remote Logging using Azure Log Workspace."
+            },
+            "type":"bool"
         },
         "workspaceId":{
             "metadata":{
@@ -250,7 +257,6 @@
         "keyVaultPermissionsSecrets": [],
         "secretName": "",
         "userAssignedIdentityName": "[concat(variables('uniqueString'), '-userIdentity')]",
-        
         "numSubnets": 2,
         "vnetAddressPrefix": "10.0",
         "vnetName": "[concat(variables('uniqueString'), '-vnet')]",
@@ -285,7 +291,6 @@
         "customEmail": [],
         "provisionPublicIpBigip": {"name":"publicIp01","properties":{"idleTimeoutInMinutes":15}},
         "roleDefinitionId": "",
-        "runtimeInitTag": {"workspaceId":"[parameters('workspaceId')]","uniqueString":"[parameters('uniqueString')]"},
         "scaleInCpuThreshold": "[parameters('bigIpScaleInCpuThreshold')]",
         "scaleInThroughputThreshold": "[parameters('bigIpScaleInThroughputThreshold')]",
         "scaleInTimeWindow": "[parameters('bigIpScaleInTimeWindow')]",
@@ -487,6 +492,33 @@
         {
             "type":"Microsoft.Resources/deployments",
             "apiVersion":"[variables('deploymentApiVersion')]",
+            "condition":"[parameters('createWorkspace')]",
+            "name":"telemetryTemplate",
+            "properties":{
+                "mode":"Incremental",
+                "templateLink":{
+                    "uri":"[concat(parameters('templateBaseUrl'), parameters('artifactLocation'), 'modules/telemetry/telemetry.json')]",
+                    "contentVersion":"[variables('contentVersion')]"
+                },
+                "parameters":{
+                    "azureDeploymentScriptUri":{
+                        "value": "[concat(parameters('templateBaseUrl'), parameters('artifactLocation'), 'modules/telemetry/deployment-script.py')]"
+                    },  
+                    "tagValues":{
+                        "value":"[parameters('tagValues')]"
+                    },
+                    "uniqueString":{
+                        "value":"[variables('uniqueString')]"
+                    },
+                    "userAssignManagedIdentity":{
+                        "value":"[if(variables('assignManagedIdentity'), reference('accessTemplate').outputs.userAssignedIdentityId.value, '')]"
+                    }                 
+                }
+            }
+        },
+        {
+            "type":"Microsoft.Resources/deployments",
+            "apiVersion":"[variables('deploymentApiVersion')]",
             "name":"bigipTemplate",
             "dependsOn":[
                 "accessTemplate",
@@ -580,7 +612,7 @@
                         "value":"[reference('networkTemplate').outputs.subnets.value[0]]"
                     },
                     "tagValues":{
-                        "value":"[union(variables('runtimeInitTag'), parameters('tagValues'))]"
+                        "value":"[parameters('tagValues')]"
                     },
                     "throughputMetricName":{
                         "value":"[variables('throughputMetricName')]"
@@ -599,6 +631,9 @@
                     },
                     "vmssName":{
                         "value":"[variables('vmssName')]"
+                    },
+                    "workspaceId":{
+                        "value":"[if(parameters('createWorkspace'), reference('telemetryTemplate').outputs.workspaceId.value, parameters('workspaceId'))]"
                     }
                 }
             }
